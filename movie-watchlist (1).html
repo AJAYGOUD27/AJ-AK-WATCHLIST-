@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AjAk — Cinematic Watchlist</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+  :root {
+    --bg: #0a0a0c;
+    --bg2: #111114;
+    --bg3: #18181d;
+    --card: #141418;
+    --card-border: rgba(255,255,255,0.06);
+    --gold: #d4a843;
+    --gold2: #f0c060;
+    --red: #c0392b;
+    --red2: #e74c3c;
+    --text: #e8e8ec;
+    --text2: #8888a0;
+    --text3: #55556a;
+    --green: #27ae60;
+    --blue: #2980b9;
+    --purple: #8e44ad;
+    --orange: #e67e22;
+    --glass: rgba(255,255,255,0.04);
+    --glow-gold: 0 0 30px rgba(212,168,67,0.15);
+    --glow-red: 0 0 30px rgba(192,57,43,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+  /* ===== LOGIN SCREEN ===== */
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.5s ease;
+  }
+
+  #login-screen.hidden { display: none; }
+
+  .login-box {
+    text-align: center;
+    padding: 60px 50px;
+    max-width: 480px;
+    width: 90%;
+    position: relative;
+  }
+
+  .login-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(231,76,60,0.06), rgba(212,168,67,0.06));
+    border: 1px solid rgba(231,76,60,0.2);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .login-box::after {
+    content: '';
+    position: absolute;
+    top: -1px; left: 15%; right: 15%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red2), var(--gold), transparent);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  /* HERO TITLE SECTION */
+  .hero-section {
+    text-align: center;
+    padding: clamp(32px, 6vw, 60px) 0 clamp(24px, 4vw, 40px);
+    position: relative;
+  }
+
+  .hero-logo {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(4rem, 12vw, 9rem);
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, var(--red2) 0%, var(--gold) 50%, var(--gold2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 0.9;
+    animation: heroGlow 3s ease-in-out infinite alternate;
+    display: inline-block;
+  }
+
+  @keyframes heroGlow {
+    from { filter: drop-shadow(0 0 15px rgba(192,57,43,0.5)) drop-shadow(0 0 40px rgba(212,168,67,0.15)); }
+    to   { filter: drop-shadow(0 0 30px rgba(212,168,67,0.7)) drop-shadow(0 0 60px rgba(192,57,43,0.2)); }
+  }
+
+  .hero-subtitle {
+    font-size: clamp(0.65rem, 2vw, 0.8rem);
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--red2), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-top: 6px;
+    opacity: 0.85;
+  }
+
+  .hero-divider {
+    width: 120px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--red2), var(--gold), transparent);
+    margin: 18px auto 0;
+    opacity: 0.5;
+  }
+
+  .login-logo {
+    font-family: 'Bebas Neue', cursive;
+    font-size: clamp(4rem, 12vw, 7rem);
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, var(--red2), var(--gold), var(--gold2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 4px;
+    animation: logoGlow 3s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 20px rgba(212,168,67,0.3));
+  }
+
+  @keyframes logoGlow {
+    from { filter: drop-shadow(0 0 12px rgba(192,57,43,0.4)) drop-shadow(0 0 30px rgba(212,168,67,0.15)); }
+    to   { filter: drop-shadow(0 0 24px rgba(212,168,67,0.6)) drop-shadow(0 0 50px rgba(192,57,43,0.2)); }
+  }
+
+  .login-tagline {
+    color: var(--text2);
+    font-size: 0.72rem;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    margin-bottom: 50px;
+    background: linear-gradient(90deg, var(--red2), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .login-label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 12px;
+    text-align: left;
+  }
+
+  .login-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid rgba(212,168,67,0.2);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    padding: 16px 20px;
+    outline: none;
+    border-radius: 2px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 20px;
+  }
+
+  .login-input:focus {
+    border-color: var(--gold);
+    box-shadow: var(--glow-gold);
+  }
+
+  .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold), #b8902a);
+    color: #000;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 16px 30px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(212,168,67,0.4);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  /* ===== MAIN APP ===== */
+  #app { display: none; }
+  #app.visible { display: block; animation: fadeIn 0.5s ease; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(180deg, rgba(10,10,12,0.98), rgba(10,10,12,0.92));
+    border-bottom: 1px solid rgba(212,168,67,0.12);
+    padding: 0 clamp(16px, 4vw, 60px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    gap: 20px;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.9rem;
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, var(--red2), var(--gold), var(--gold2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .welcome-text {
+    font-size: 0.8rem;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+
+  .welcome-text span {
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .btn-sm {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-sm:hover { border-color: var(--gold); color: var(--gold); }
+
+  .btn-add {
+    background: var(--gold);
+    color: #000;
+    border-color: var(--gold);
+    font-weight: 600;
+  }
+
+  .btn-add:hover {
+    background: var(--gold2);
+    border-color: var(--gold2);
+    color: #000;
+    transform: none;
+    box-shadow: 0 4px 20px rgba(212,168,67,0.4);
+  }
+
+  /* MAIN CONTENT */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: clamp(24px, 4vw, 48px) clamp(16px, 4vw, 60px);
+  }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    padding: 20px 22px;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .stat-card:hover { border-color: rgba(212,168,67,0.2); }
+  .stat-card:hover::after { opacity: 1; }
+
+  .stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2.2rem;
+    letter-spacing: 0.05em;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-sub {
+    font-size: 0.72rem;
+    color: var(--text3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    align-items: center;
+  }
+
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    pointer-events: none;
+    font-size: 0.9rem;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    padding: 10px 14px 10px 38px;
+    outline: none;
+    border-radius: 2px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .search-input:focus {
+    border-color: rgba(212,168,67,0.4);
+    box-shadow: 0 0 0 2px rgba(212,168,67,0.08);
+  }
+
+  .search-input::placeholder { color: var(--text3); }
+
+  select.filter-select {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    padding: 10px 14px;
+    outline: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+    min-width: 130px;
+  }
+
+  select.filter-select:focus { border-color: rgba(212,168,67,0.4); }
+
+  .btn-random {
+    background: linear-gradient(135deg, #1a0a0a, #2a0f0f);
+    border: 1px solid rgba(192,57,43,0.4);
+    color: var(--red2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-random:hover {
+    background: linear-gradient(135deg, #2a0f0f, #3a1414);
+    border-color: var(--red2);
+    box-shadow: 0 0 20px rgba(231,76,60,0.2);
+  }
+
+  /* MOVIES GRID */
+  .movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 80px 20px;
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    opacity: 0.15;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .empty-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.8rem;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+
+  .empty-sub {
+    font-size: 0.85rem;
+    color: var(--text3);
+  }
+
+  /* MOVIE CARD */
+  .movie-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 2px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    animation: slideUp 0.4s ease both;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .movie-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .movie-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(212,168,67,0.2);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,168,67,0.05);
+  }
+
+  .movie-card:hover::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .movie-title {
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.3;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .rating-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(212,168,67,0.12);
+    border: 1px solid rgba(212,168,67,0.25);
+    padding: 4px 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .rating-star { color: var(--gold); font-size: 0.7rem; }
+
+  .rating-num {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.1rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .status-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  .status-badge.to-watch { background: rgba(41,128,185,0.18); color: #5ba3d0; border: 1px solid rgba(41,128,185,0.3); }
+  .status-badge.watching { background: rgba(212,168,67,0.15); color: var(--gold); border: 1px solid rgba(212,168,67,0.3); }
+  .status-badge.watched { background: rgba(39,174,96,0.15); color: #4cd08a; border: 1px solid rgba(39,174,96,0.3); }
+  .status-badge.dropped { background: rgba(192,57,43,0.15); color: #e57a6f; border: 1px solid rgba(192,57,43,0.3); }
+
+  .genre-tag {
+    font-size: 0.68rem;
+    color: var(--text3);
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 3px 9px;
+    border-radius: 2px;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-ott {
+    flex: 1;
+    background: linear-gradient(135deg, rgba(212,168,67,0.1), rgba(212,168,67,0.05));
+    border: 1px solid rgba(212,168,67,0.2);
+    color: var(--gold);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.73rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    text-align: center;
+    white-space: nowrap;
+    min-width: 80px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .btn-ott:hover {
+    background: rgba(212,168,67,0.2);
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(212,168,67,0.15);
+  }
+
+  .btn-edit, .btn-delete {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text3);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-edit:hover { border-color: rgba(212,168,67,0.4); color: var(--gold); }
+  .btn-delete:hover { border-color: rgba(192,57,43,0.4); color: var(--red2); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .modal-overlay.hidden { display: none; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid rgba(212,168,67,0.15);
+    width: 100%;
+    max-width: 520px;
+    border-radius: 2px;
+    overflow: hidden;
+    animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.92) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.4rem;
+    letter-spacing: 0.12em;
+    color: var(--gold);
+  }
+
+  .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { padding: 24px 28px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group:last-child { margin-bottom: 0; }
+
+  .form-label {
+    display: block;
+    font-size: 0.67rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 11px 14px;
+    outline: none;
+    border-radius: 2px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .form-input:focus, .form-select:focus {
+    border-color: rgba(212,168,67,0.5);
+    box-shadow: 0 0 0 2px rgba(212,168,67,0.08);
+  }
+
+  .form-input::placeholder { color: var(--text3); }
+
+  .form-select option { background: var(--bg2); }
+
+  .modal-footer {
+    padding: 0 28px 24px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    padding: 11px 22px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
+
+  .btn-save {
+    background: linear-gradient(135deg, var(--gold), #b8902a);
+    color: #000;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 11px 28px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .btn-save:hover {
+    box-shadow: 0 4px 20px rgba(212,168,67,0.4);
+    transform: translateY(-1px);
+  }
+
+  /* RANDOM MOVIE MODAL */
+  .random-result {
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  .random-movie-name {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2rem;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    margin-bottom: 12px;
+    line-height: 1.1;
+  }
+
+  .random-meta {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* CONFIRM DIALOG */
+  .confirm-modal {
+    background: var(--bg2);
+    border: 1px solid rgba(192,57,43,0.25);
+    width: 100%;
+    max-width: 380px;
+    border-radius: 2px;
+    padding: 30px;
+    text-align: center;
+    animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .confirm-icon { font-size: 2.5rem; margin-bottom: 16px; }
+
+  .confirm-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.5rem;
+    letter-spacing: 0.1em;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .confirm-sub {
+    font-size: 0.83rem;
+    color: var(--text2);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .btn-confirm-delete {
+    background: linear-gradient(135deg, var(--red), #a93226);
+    color: #fff;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 11px 24px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .btn-confirm-delete:hover { box-shadow: 0 4px 20px rgba(192,57,43,0.4); }
+
+  /* TOAST */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text);
+    font-size: 0.83rem;
+    padding: 12px 18px;
+    border-radius: 2px;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    max-width: 280px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+
+  .toast.success { border-color: rgba(39,174,96,0.4); }
+  .toast.error { border-color: rgba(192,57,43,0.4); }
+
+  @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+  /* FILM STRIP DECORATION */
+  .film-strip {
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 20px, transparent 20px, transparent 28px);
+    opacity: 0.2;
+    margin-bottom: 32px;
+  }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+    color: var(--text2);
+  }
+
+  .movie-count {
+    font-size: 0.72rem;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+  }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    .header-inner { height: 56px; }
+    .logo { font-size: 1.5rem; }
+    .welcome-text { display: none; }
+    .form-row { grid-template-columns: 1fr; }
+    .controls { gap: 8px; }
+    .btn-random span { display: none; }
+    .movies-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-value { font-size: 1.8rem; }
+    .modal { margin: 0; }
+  }
+
+  @media (max-width: 400px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">AjAk</div>
+    <div class="login-tagline">Cinematic Watchlist</div>
+    <label class="login-label" for="nickname-input">Your Nickname</label>
+    <input type="text" id="nickname-input" class="login-input" placeholder="e.g. FilmNerd, CinephileMax..." maxlength="24" autocomplete="off" />
+    <button class="btn-primary" onclick="enterApp()">Enter the Vault →</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <header>
+    <div class="header-inner">
+      <div class="logo">AjAk</div>
+      <div class="header-right">
+        <div class="welcome-text">Welcome, <span id="header-nickname"></span></div>
+        <button class="btn-sm" onclick="openAddModal()">+ Add Movie</button>
+        <button class="btn-sm" onclick="switchUser()">Switch User</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="film-strip"></div>
+
+    <!-- HERO TITLE -->
+    <div class="hero-section">
+      <div class="hero-logo">AjAk</div>
+      <div class="hero-subtitle">Cinematic Watchlist</div>
+      <div class="hero-divider"></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Films</div>
+        <div class="stat-value" id="stat-total">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Watched</div>
+        <div class="stat-value" id="stat-watched">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">To Watch</div>
+        <div class="stat-value" id="stat-towatch">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Rating</div>
+        <div class="stat-value" id="stat-avg">—</div>
+      </div>
+      <div class="stat-card" style="grid-column: span 1;">
+        <div class="stat-label">Top Film</div>
+        <div class="stat-value" id="stat-top-rating" style="font-size:1.4rem;">—</div>
+        <div class="stat-sub" id="stat-top-name">No movies yet</div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" class="search-input" id="search-input" placeholder="Search by title or genre..." oninput="renderMovies()" />
+      </div>
+      <select class="filter-select" id="filter-status" onchange="renderMovies()">
+        <option value="all">All Status</option>
+        <option value="to-watch">To Watch</option>
+        <option value="watching">Watching</option>
+        <option value="watched">Watched</option>
+        <option value="dropped">Dropped</option>
+      </select>
+      <select class="filter-select" id="sort-by" onchange="renderMovies()">
+        <option value="recent">Recently Added</option>
+        <option value="rating">By Rating</option>
+        <option value="name">A → Z</option>
+      </select>
+      <button class="btn-random" onclick="pickRandom()">🎲 <span>Random Pick</span></button>
+    </div>
+
+    <!-- MOVIES SECTION -->
+    <div class="section-header">
+      <div class="section-title">Your Watchlist</div>
+      <div class="movie-count" id="movie-count"></div>
+    </div>
+
+    <div class="movies-grid" id="movies-grid"></div>
+  </main>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay hidden" id="movie-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add Movie</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Movie Title *</label>
+        <input type="text" class="form-input" id="f-title" placeholder="e.g. Inception" maxlength="120" />
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Rating (1–10) *</label>
+          <input type="number" class="form-input" id="f-rating" placeholder="8" min="1" max="10" />
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Status *</label>
+          <select class="form-select" id="f-status">
+            <option value="to-watch">To Watch</option>
+            <option value="watching">Watching</option>
+            <option value="watched">Watched</option>
+            <option value="dropped">Dropped</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Genre (optional)</label>
+        <input type="text" class="form-input" id="f-genre" placeholder="e.g. Sci-Fi, Thriller" maxlength="60" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">OTT / Stream Link (optional)</label>
+        <input type="url" class="form-input" id="f-ott" placeholder="https://netflix.com/..." />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveMovie()">Save Movie</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay hidden" id="confirm-modal">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🗑</div>
+    <div class="confirm-title">Delete Movie?</div>
+    <div class="confirm-sub" id="confirm-text">This will permanently remove this movie from your watchlist.</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm-delete" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- RANDOM MOVIE MODAL -->
+<div class="modal-overlay hidden" id="random-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎲 Tonight's Pick</div>
+      <button class="modal-close" onclick="closeRandom()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="random-result">
+        <div class="random-movie-name" id="random-name"></div>
+        <div class="random-meta" id="random-meta"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeRandom()">Close</button>
+      <button class="btn-save" onclick="pickRandom()">Pick Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+  let currentUser = '';
+  let editingId = null;
+  let deleteId = null;
+
+  // ===== STORAGE HELPERS =====
+  function getKey() { return 'ajak_movies_' + currentUser; }
+
+  function getMovies() {
+    try { return JSON.parse(localStorage.getItem(getKey()) || '[]'); }
+    catch { return []; }
+  }
+
+  function saveMovies(movies) {
+    localStorage.setItem(getKey(), JSON.stringify(movies));
+  }
+
+  // ===== LOGIN =====
+  function enterApp() {
+    const nick = document.getElementById('nickname-input').value.trim();
+    if (!nick) { showToast('Please enter a nickname', 'error'); return; }
+    currentUser = nick;
+    localStorage.setItem('ajak_user', nick);
+    showApp();
+  }
+
+  function switchUser() {
+    if (!confirm('Switch user? Your movies are saved and will return when you use this nickname again.')) return;
+    localStorage.removeItem('ajak_user');
+    currentUser = '';
+    document.getElementById('app').classList.remove('visible');
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('nickname-input').value = '';
+  }
+
+  function showApp() {
+    document.getElementById('login-screen').classList.add('hidden');
+    const app = document.getElementById('app');
+    app.style.display = 'block';
+    setTimeout(() => app.classList.add('visible'), 10);
+    document.getElementById('header-nickname').textContent = currentUser;
+    updateStats();
+    renderMovies();
+  }
+
+  // ===== STATS =====
+  function updateStats() {
+    const movies = getMovies();
+    const watched = movies.filter(m => m.status === 'watched');
+    const toWatch = movies.filter(m => m.status === 'to-watch');
+    const rated = movies.filter(m => m.rating);
+    const avgRating = rated.length ? (rated.reduce((s, m) => s + parseFloat(m.rating), 0) / rated.length).toFixed(1) : '—';
+    const topMovie = [...movies].sort((a, b) => b.rating - a.rating)[0];
+
+    document.getElementById('stat-total').textContent = movies.length;
+    document.getElementById('stat-watched').textContent = watched.length;
+    document.getElementById('stat-towatch').textContent = toWatch.length;
+    document.getElementById('stat-avg').textContent = avgRating;
+    document.getElementById('stat-top-rating').textContent = topMovie ? topMovie.rating + '/10' : '—';
+    document.getElementById('stat-top-name').textContent = topMovie ? topMovie.title : 'No movies yet';
+  }
+
+  // ===== RENDER =====
+  function renderMovies() {
+    const grid = document.getElementById('movies-grid');
+    let movies = getMovies();
+    const search = document.getElementById('search-input').value.trim().toLowerCase();
+    const filterStatus = document.getElementById('filter-status').value;
+    const sortBy = document.getElementById('sort-by').value;
+
+    if (search) {
+      movies = movies.filter(m =>
+        m.title.toLowerCase().includes(search) ||
+        (m.genre && m.genre.toLowerCase().includes(search))
+      );
+    }
+
+    if (filterStatus !== 'all') {
+      movies = movies.filter(m => m.status === filterStatus);
+    }
+
+    if (sortBy === 'rating') {
+      movies.sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === 'name') {
+      movies.sort((a, b) => a.title.localeCompare(b.title));
+    } else {
+      movies.sort((a, b) => b.addedAt - a.addedAt);
+    }
+
+    const count = document.getElementById('movie-count');
+    count.textContent = movies.length + ' film' + (movies.length !== 1 ? 's' : '');
+
+    if (movies.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <span class="empty-icon">🎬</span>
+          <div class="empty-title">Your Watchlist is Empty</div>
+          <div class="empty-sub">Add your first movie to get started.</div>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = movies.map((m, i) => movieCardHTML(m, i)).join('');
+  }
+
+  function statusLabel(s) {
+    return { 'to-watch': 'To Watch', 'watching': 'Watching', 'watched': 'Watched', 'dropped': 'Dropped' }[s] || s;
+  }
+
+  function movieCardHTML(m, i) {
+    const ott = m.ott ? `<a href="${escHTML(m.ott)}" target="_blank" rel="noopener" class="btn-ott">▶ Stream</a>` : `<span class="btn-ott" style="opacity:0.3;cursor:default;">No Link</span>`;
+    const genre = m.genre ? `<span class="genre-tag">${escHTML(m.genre)}</span>` : '';
+    return `
+      <div class="movie-card" style="animation-delay:${Math.min(i * 0.05, 0.3)}s">
+        <div class="card-top">
+          <div class="movie-title">${escHTML(m.title)}</div>
+          <div class="rating-badge">
+            <span class="rating-star">★</span>
+            <span class="rating-num">${m.rating}</span>
+          </div>
+        </div>
+        <div class="card-meta">
+          <span class="status-badge ${m.status}">${statusLabel(m.status)}</span>
+          ${genre}
+        </div>
+        <div class="card-actions">
+          ${ott}
+          <button class="btn-edit" onclick="openEdit('${m.id}')">✎</button>
+          <button class="btn-delete" onclick="askDelete('${m.id}', '${escHTML(m.title).replace(/'/g,"\\'")}')">✕</button>
+        </div>
+      </div>`;
+  }
+
+  function escHTML(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  // ===== ADD / EDIT =====
+  function openAddModal() {
+    editingId = null;
+    document.getElementById('modal-title').textContent = 'Add Movie';
+    document.getElementById('f-title').value = '';
+    document.getElementById('f-rating').value = '';
+    document.getElementById('f-status').value = 'to-watch';
+    document.getElementById('f-genre').value = '';
+    document.getElementById('f-ott').value = '';
+    document.getElementById('movie-modal').classList.remove('hidden');
+  }
+
+  function openEdit(id) {
+    const movies = getMovies();
+    const m = movies.find(x => x.id === id);
+    if (!m) return;
+    editingId = id;
+    document.getElementById('modal-title').textContent = 'Edit Movie';
+    document.getElementById('f-title').value = m.title;
+    document.getElementById('f-rating').value = m.rating;
+    document.getElementById('f-status').value = m.status;
+    document.getElementById('f-genre').value = m.genre || '';
+    document.getElementById('f-ott').value = m.ott || '';
+    document.getElementById('movie-modal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('movie-modal').classList.add('hidden');
+  }
+
+  function saveMovie() {
+    const title = document.getElementById('f-title').value.trim();
+    const rating = parseFloat(document.getElementById('f-rating').value);
+    const status = document.getElementById('f-status').value;
+    const genre = document.getElementById('f-genre').value.trim();
+    const ott = document.getElementById('f-ott').value.trim();
+
+    if (!title) { showToast('Movie title is required', 'error'); return; }
+    if (!rating || rating < 1 || rating > 10) { showToast('Rating must be 1–10', 'error'); return; }
+
+    let movies = getMovies();
+
+    if (editingId) {
+      movies = movies.map(m => m.id === editingId ? { ...m, title, rating, status, genre, ott } : m);
+      showToast('Movie updated ✓');
+    } else {
+      movies.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2), title, rating, status, genre, ott, addedAt: Date.now() });
+      showToast('Movie added to watchlist ✓');
+    }
+
+    saveMovies(movies);
+    closeModal();
+    updateStats();
+    renderMovies();
+  }
+
+  // ===== DELETE =====
+  function askDelete(id, name) {
+    deleteId = id;
+    document.getElementById('confirm-text').textContent = `Remove "${name}" from your watchlist?`;
+    document.getElementById('confirm-modal').classList.remove('hidden');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    deleteId = null;
+  }
+
+  function confirmDelete() {
+    if (!deleteId) return;
+    let movies = getMovies().filter(m => m.id !== deleteId);
+    saveMovies(movies);
+    closeConfirm();
+    updateStats();
+    renderMovies();
+    showToast('Movie removed');
+  }
+
+  // ===== RANDOM PICKER =====
+  function pickRandom() {
+    const movies = getMovies().filter(m => m.status === 'to-watch');
+    if (!movies.length) {
+      showToast('No "To Watch" movies found', 'error');
+      closeRandom();
+      return;
+    }
+    const pick = movies[Math.floor(Math.random() * movies.length)];
+    document.getElementById('random-name').textContent = pick.title;
+    const meta = [];
+    if (pick.genre) meta.push(`<span class="genre-tag">${escHTML(pick.genre)}</span>`);
+    meta.push(`<div class="rating-badge"><span class="rating-star">★</span><span class="rating-num">${pick.rating}</span></div>`);
+    document.getElementById('random-meta').innerHTML = meta.join('');
+    document.getElementById('random-modal').classList.remove('hidden');
+  }
+
+  function closeRandom() {
+    document.getElementById('random-modal').classList.add('hidden');
+  }
+
+  // ===== TOAST =====
+  function showToast(msg, type) {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.className = 'toast ' + (type || 'success');
+    t.innerHTML = (type === 'error' ? '⚠ ' : '✓ ') + msg;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  // ===== KEYBOARD =====
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeConfirm(); closeRandom(); }
+    if (e.key === 'Enter' && !document.getElementById('movie-modal').classList.contains('hidden')) saveMovie();
+    if (e.key === 'Enter' && document.getElementById('login-screen') && !document.getElementById('login-screen').classList.contains('hidden')) enterApp();
+  });
+
+  // Close modals on overlay click
+  document.getElementById('movie-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+  document.getElementById('confirm-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeConfirm(); });
+  document.getElementById('random-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRandom(); });
+
+  // ===== INIT =====
+  (function init() {
+    const saved = localStorage.getItem('ajak_user');
+    if (saved) {
+      currentUser = saved;
+      document.getElementById('nickname-input').value = saved;
+      showApp();
+    }
+  })();
+</script>
+</body>
+</html>
